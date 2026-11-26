@@ -112,15 +112,18 @@ Options tried at each step, in order:
 
 Eligibility of a person for a slot applies rules 3 to 7, subject to the switches.
 
-Score of an assignment: (GAP count, GAPs in active slots, fallback count), compared left to
-right, lower is better. The search keeps the first assignment found with the best score. A branch
+Score of an assignment: (GAP count, GAPs in active slots, penalty), compared left to right, lower
+is better. The penalty is 2 for every unmet requirement (each time a senior or special coag
+"unmet" option is taken, whether or not a slot is reserved) plus 1 for every special coag
+fallback placement. The search keeps the first assignment found with the best score. A branch
 is cut as soon as its running score is not better than the best so far.
 
 Stop conditions:
 
-- Lower bound: one active GAP for each group with no senior individually eligible for any of its
-  active slots; one fallback for each group with no special coag person individually eligible for
-  any of its active slots (or one GAP if none is eligible for standby either). The search stops
+- Lower bound: one active GAP (and penalty 2) for each group with no senior individually eligible
+  for any of its active slots; for each group with no special coag person individually eligible for
+  any of its active slots, penalty 1 if one is eligible for standby (the fallback), otherwise one
+  GAP and penalty 2. The search stops
   when the best score equals the lower bound. In a normal year this is the first leaf reached.
 - Node cap: 200,000 placements per date. If reached, the best assignment so far is kept and the
   Review sheet says the search was cut short for that date.
@@ -242,8 +245,9 @@ Search
   either, nothing is reserved and the requirement is recorded as unmet without a slot.
 - The senior "unmet" option likewise records an unmet requirement without a slot when the group
   has no empty active slot.
-- Score changes: plain or reserved GAP in an active slot (1,1,0); in a standby slot (1,0,0);
-  unmet without a slot (1,1,0); fallback (0,0,1).
+- Score changes: plain GAP in an active slot (1,1,0); in a standby slot (1,0,0); reserved senior
+  or special coag GAP in an active slot (1,1,2); in a standby slot (1,0,2); unmet without a slot
+  (1,1,2); fallback (0,0,1).
 - Before an option is applied, its resulting score is compared with the best so far; if it is not
   strictly better, the option is skipped and not counted. Otherwise the node counter goes up by
   one (every option counts: placement, GAP, reserve, unmet). If the counter then exceeds 200,000
@@ -253,11 +257,11 @@ Search
   - gapsA = empty slots minus the size of a maximum matching of empty slots to eligible people.
   - activeA = the same, counting empty active slots only.
   - For each group with a senior step and no senior eligible for any empty active slot:
-    reqGaps + 1, reqActive + 1.
+    reqGaps + 1, reqActive + 1, penalty + 2.
   - For each group with a special coag step and no special coag person eligible for any empty
-    active slot: fallback + 1 if one is eligible for the first empty standby slot; otherwise
-    reqGaps + 1, and reqActive + 1 if the group has no empty standby slot.
-  - Bound = (max(gapsA, reqGaps), max(activeA, reqActive), fallback). The search stops when the
+    active slot: penalty + 1 if one is eligible for the first empty standby slot; otherwise
+    penalty + 2, reqGaps + 1, and reqActive + 1 if the group has no empty standby slot.
+  - Bound = (max(gapsA, reqGaps), max(activeA, reqActive), penalty). The search stops when the
     best score equals the bound.
 - Rule 7 also looks forward during regeneration: a person already placed by an approval on D+1 in
   a slot other than Night or Standby N is not eligible for an active Night slot on D.

@@ -1,6 +1,7 @@
 import copy
+import random
 
-from roster import model
+from roster import engine, model
 from roster.engine import new_result, solve_year, max_matching
 from roster.model import GAP, GAP_SENIOR, GAP_COAG, EMPTY_CELL
 from tests.helpers import make_inputs
@@ -188,3 +189,59 @@ def test_recount_leaves_result_unchanged():
     assert names(inp, res, 1) == ["A1", "B6", "B4", "A2", "B5", "B1", "B2"]
     solve_year(inp, res, len(inp.dates))
     assert res == before
+
+
+def solved_exhaustive(inp, monkeypatch):
+    """Solve the year with the early stop disabled: the bound is unreachable, so the search
+    runs to completion (pruning against the best score still applies)."""
+    with monkeypatch.context() as m:
+        m.setattr(engine._Search, "lower_bound", lambda self: (-1, -1, -1))
+        return solved(inp)
+
+
+def test_penalty_prefers_unmet_coag_slot_over_fallback_plus_gap(monkeypatch):
+    # Counts (1, 2, 0, 1, 1): slots Day, Evening 1, Evening 2, Standby D/E, Standby N.
+    # P3, P4 ("en") can only do Day. No seniors. Hand trace, penalty = 2 per unmet + 1 per fallback.
+    # Date 0: order P0..P4 (all ratios 0). Senior step -> GAP:S in Evening 2 (last empty active),
+    #   (1,1,2). Coag step (a): P0 in Day first (first leaf worse), improved by P0 in Evening 1,
+    #   then P3 Day, P1 Standby D/E, P2 Standby N -> (1,1,2) == bound (1,1,2): [P3,P0,GAP:S,P1,P2].
+    # Date 1: eligible P0=1,P1=2,P2=1,P3=2,P4=2; active P0=1,P3=1; standby P1=1,P2=1 ->
+    #   order P4,P1,P2,P3,P0. P0 on leave, P2 exempt (standby only), P3/P4 Day only.
+    #   Senior -> GAP:S Evening 2 (1,1,2). Coag (a) none; (b) P2 -> Standby D/E (0,0,1) -> (1,1,3);
+    #   P4 Day, P1 Evening 1, Standby N: nobody -> GAP (2,1,3). Bound: gapsA 2, activeA 1,
+    #   reqG/reqA 1, p_lb 2+1 -> (2,1,3) == score, stop. The alternative GAP:C in Standby D/E with
+    #   P2 in Standby N is (2,1,4), worse; the old scoring (fallback count) wrongly preferred it.
+    staff = [("P0", "C"), ("P1", ""), ("P2", "C"), ("P3", "en"), ("P4", "en")]
+    inp = make_inputs(staff, ["2027-02-10", "2027-02-11"], counts=(1, 2, 0, 1, 1),
+                      exempt=[("P2", 1)], leave=[("P0", 1, model.M_ALL)])
+    res = solved(inp)
+    assert names(inp, res, 0) == ["P3", "P0", "GAP:S", "P1", "P2"]
+    assert names(inp, res, 1) == ["P4", "P1", "GAP:S", "P2", "GAP"]
+    ex = solved_exhaustive(inp, monkeypatch)
+    assert ex.grid == res.grid and ex.unmet == res.unmet
+    assert not any(ex.cut_short)
+
+
+def test_early_stop_matches_exhaustive_search_random(monkeypatch):
+    rng = random.Random(20261126)
+    checked = 0
+    for _ in range(200):
+        n = rng.randint(4, 7)
+        staff = []
+        for i in range(n):
+            flags = "".join(f for f in "SCden" if rng.random() < 0.25)
+            staff.append(("P%d" % i, flags))
+        counts = tuple(rng.choice([0, 1, 1, 2]) for _ in range(5))
+        nd = rng.randint(1, 2)
+        dates = ["2027-02-10", "2027-02-11"][:nd]
+        exempt = [(nm, d) for nm, _ in staff for d in range(nd) if rng.random() < 0.15]
+        leave = [(nm, d, rng.choice([1, 2, 4, 8, 3])) for nm, _ in staff for d in range(nd)
+                 if rng.random() < 0.15]
+        inp = make_inputs(staff, dates, counts=counts, exempt=exempt, leave=leave)
+        res = solved(inp)
+        ex = solved_exhaustive(inp, monkeypatch)
+        if any(ex.cut_short):
+            continue
+        checked += 1
+        assert res.grid == ex.grid and res.unmet == ex.unmet
+    assert checked > 100

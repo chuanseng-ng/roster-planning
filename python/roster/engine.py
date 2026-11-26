@@ -128,7 +128,7 @@ class _Search:
         active_a = len(empty_a) - max_matching(len(empty_a), adj)
         req_g = 0
         req_a = 0
-        fb = 0
+        pen = 0
         for kind, g in self.steps:
             if kind == "senior":
                 if not self.has_senior(g):
@@ -141,6 +141,7 @@ class _Search:
                     if not found:
                         req_g += 1
                         req_a += 1
+                        pen += 2
             elif kind == "coag":
                 if not self.has_coag(g):
                     found = False
@@ -161,12 +162,13 @@ class _Search:
                                 if inp.coag[s] and self.free(s, k1):
                                     ok = True
                         if ok:
-                            fb += 1
+                            pen += 1
                         else:
+                            pen += 2
                             req_g += 1
                             if k1 is None:
                                 req_a += 1
-        return (max(gaps_a, req_g), max(active_a, req_a), fb)
+        return (max(gaps_a, req_g), max(active_a, req_a), pen)
 
     # --- search -------------------------------------------------------------
     def rec(self, i):
@@ -243,6 +245,8 @@ class _Search:
         if self.best_score is not None and new >= self.best_score:
             return
         self.nodes += 1
+        # NODE_CAP must exceed the number of steps for a date (at most 49), so the first leaf is
+        # always reached and `best` is never None at the real cap.
         if self.nodes > model.NODE_CAP:
             self.stop = True
             self.cut = True
@@ -257,12 +261,14 @@ class _Search:
         self.score = old
 
     def try_gap(self, i, k, code, g):
+        # Score = (gaps, active gaps, penalty); penalty is 2 per unmet requirement, 1 per fallback.
+        pen = 2 if code != GAP else 0
         if k is None:
-            delta = (1, 1, 0)
+            delta = (1, 1, pen)
         elif self.inp.slots[k].active:
-            delta = (1, 1, 0)
+            delta = (1, 1, pen)
         else:
-            delta = (1, 0, 0)
+            delta = (1, 0, pen)
         new = _add(self.score, delta)
         if self.best_score is not None and new >= self.best_score:
             return

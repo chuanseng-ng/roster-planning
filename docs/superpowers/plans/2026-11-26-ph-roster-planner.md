@@ -520,9 +520,10 @@ try_place(i, s, k, delta):
     row[k] = EMPTY_CELL; used[s] = False; score = old
 
 try_gap(i, k, code, g):
-    if k is None:            delta = (1, 1, 0)
-    elif slot k is active:   delta = (1, 1, 0)
-    else:                    delta = (1, 0, 0)
+    pen = 0 if code == GAP else 2                     # unmet senior / coag requirement
+    if k is None:            delta = (1, 1, pen)
+    elif slot k is active:   delta = (1, 1, pen)
+    else:                    delta = (1, 0, pen)
     new = score + delta
     if best_score is not None and new >= best_score: return
     nodes += 1
@@ -546,19 +547,20 @@ empty   = [k for k in columns if row[k] == EMPTY_CELL]
 gapsA   = len(empty) - max_matching(len(empty), [[s for s in staff order if E(s, k)] for k in empty])
 emptyA  = [k for k in empty if slot k is active]
 activeA = len(emptyA) - max_matching(len(emptyA), [[s for s in staff order if E(s, k)] for k in emptyA])
-reqG = reqA = fb = 0
+reqG = reqA = pen = 0
 for each ("senior", g) step:
     if no active slot of g already holds a senior:
-        if there is no senior s and empty active slot k of g with E(s, k): reqG += 1; reqA += 1
+        if there is no senior s and empty active slot k of g with E(s, k): reqG += 1; reqA += 1; pen += 2
 for each ("coag", g) step:
     if not already satisfied (the same two skip tests as in rec):
         if there is no coag s and empty active slot k of g with E(s, k):
             k1 = first empty standby slot of g, or None
-            if k1 is not None and some coag s has E(s, k1): fb += 1
+            if k1 is not None and some coag s has E(s, k1): pen += 1
             else:
+                pen += 2
                 reqG += 1
                 if k1 is None: reqA += 1
-bound = (max(gapsA, reqG), max(activeA, reqA), fb)
+bound = (max(gapsA, reqG), max(activeA, reqA), pen)
 ```
 
 - [ ] **Step 1:** Write `python/tests/test_engine.py`, starting with:
