@@ -1,0 +1,13 @@
+Key,Value
+Year,2027
+Count Day,3
+Count Evening,2
+Count Night,1
+Count Standby D/E,0
+Count Standby N,2
+Rule 1,N
+Rule 2,Y
+Rule 4,Y
+Rule 5,Y
+Rule 6,Y
+Rule 7,Y
