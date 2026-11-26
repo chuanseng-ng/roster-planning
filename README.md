@@ -13,7 +13,7 @@ Open PowerShell in the repository folder and run:
 
     powershell -ExecutionPolicy Bypass -File build\build.ps1
 
-The script opens Excel in the background, builds the workbook, saves it as `dist\PHRosterPlanner.xlsm` and runs the built-in self-test. What the result means:
+The script opens Excel in the background (the Excel window appears while the self-test runs), builds the workbook, saves it as `dist\PHRosterPlanner.xlsm` and runs the built-in self-test. What the result means:
 
 | Exit code | Meaning |
 | --- | --- |
