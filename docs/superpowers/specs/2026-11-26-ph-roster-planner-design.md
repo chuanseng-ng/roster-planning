@@ -219,7 +219,83 @@ Summary and checked in the normal-year scenario.
 VBA sources are stored with CRLF line endings and ASCII characters only so Excel imports them
 unchanged.
 
-## 11. Limits
+## 11. Exact behaviour (added after secondary planning review)
+
+This section pins down details so the Python and VBA engines cannot diverge. It overrides
+sections 5 and 7 where they differ.
+
+Text matching
+
+- Staff names, holiday names, role words, Cannot do words, Shift words and the "Standby" prefix
+  are compared after trimming spaces and upper-casing. Staff and holiday names must be ASCII;
+  validation reports any that are not.
+
+Search
+
+- Options at a step are tried person by person (in candidate order), and for each person slot by
+  slot (in column order). This applies to the senior step and to part (a) of the special coag
+  step.
+- People with zero eligible dates sort last, ordered among themselves by standby count, then name.
+- A special coag step is also skipped when an approved special coag person already sits in one of
+  the group's standby slots. Part (b) uses the group's first empty standby slot. Part (c) reserves
+  the first empty standby slot; if there is none, the last empty active slot; if there is none
+  either, nothing is reserved and the requirement is recorded as unmet without a slot.
+- The senior "unmet" option likewise records an unmet requirement without a slot when the group
+  has no empty active slot.
+- Score changes: plain or reserved GAP in an active slot (1,1,0); in a standby slot (1,0,0);
+  unmet without a slot (1,1,0); fallback (0,0,1).
+- Before an option is applied, its resulting score is compared with the best so far; if it is not
+  strictly better, the option is skipped and not counted. Otherwise the node counter goes up by
+  one (every option counts: placement, GAP, reserve, unmet). If the counter then exceeds 200,000
+  the search stops and the date is marked cut short.
+- Lower bound, replacing the one in section 5. Let "eligible" mean individually eligible under
+  rules 4 to 7 and not already placed by an approval.
+  - gapsA = empty slots minus the size of a maximum matching of empty slots to eligible people.
+  - activeA = the same, counting empty active slots only.
+  - For each group with a senior step and no senior eligible for any empty active slot:
+    reqGaps + 1, reqActive + 1.
+  - For each group with a special coag step and no special coag person eligible for any empty
+    active slot: fallback + 1 if one is eligible for the first empty standby slot; otherwise
+    reqGaps + 1, and reqActive + 1 if the group has no empty standby slot.
+  - Bound = (max(gapsA, reqGaps), max(activeA, reqActive), fallback). The search stops when the
+    best score equals the bound.
+- Rule 7 also looks forward during regeneration: a person already placed by an approval on D+1 in
+  a slot other than Night or Standby N is not eligible for an active Night slot on D.
+
+Review
+
+- Group column shows "Day + evening" or "Night".
+- An unmet requirement without a slot gets a Review row with an empty Slot; it cannot be
+  approved. A cut-short date gets one row with rule "Search cut short" and empty Group and Slot.
+- Candidates considers only rules that are switched on and only people not on that date's roster.
+  Reason and Candidates list people in Staff sheet order.
+
+Approvals
+
+- Pending rows are applied in date order, then slot column order. Later dates are regenerated
+  after each applied row.
+- Rules recorded for an approval: every rule from 4 to 7 the person breaks in that slot (rule 7 in
+  either direction), plus rule 1 when a non-senior fills a "No senior" GAP and rule 2 when a
+  non-special-coag person fills a "No special coag" GAP.
+- After regeneration, each recorded approval on a later date is re-examined; any newly broken
+  rule is added to its record and reported to the user.
+- The rule checker reports rules 3 to 7 per filled cell, and rules 1 and 2 per group only when
+  the group has no GAP and no unmet requirement (those are already on Review). A finding is
+  excused when an approval in that cell (rules 3 to 7) or in that group on that date (rules 1 and
+  2) records the rule.
+
+Other
+
+- Expand long weekends appends the new rows and then sorts the sheet by date.
+- Ratio on Summary is shown with 4 decimals, rounded half up using whole-number arithmetic; it is
+  blank for people with zero eligible dates. The spread is the difference between the highest and
+  lowest displayed ratios.
+- Settings is a two-column Key/Value table with keys Year, Count Day, Count Evening, Count Night,
+  Count Standby D/E, Count Standby N, Rule 1, Rule 2, Rule 4, Rule 5, Rule 6, Rule 7.
+- `build.ps1` ends by running the self-test silently and printing the result, so compile errors
+  and mismatches surface during the build.
+
+## 12. Limits
 
 - VBA and `build.ps1` are not executed before the user's first Windows build. Expect at least one
   round of fixes after that first run.
