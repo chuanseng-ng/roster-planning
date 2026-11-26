@@ -130,3 +130,47 @@ def test_all_problems_reported_together():
     raw.leave[0][3] = "Lunch"
     assert validate(raw) == ["Staff row 2: Senior must be Y or N",
                              "Leave row 1: unknown Shift Lunch"]
+
+YEAR_MSG = "Settings: Year must be a whole number"
+
+def test_year_rejected_forms():
+    for bad in ["27", "02027", "1899", "20270"]:
+        raw = good()
+        raw.settings[0][1] = bad
+        assert YEAR_MSG in validate(raw), bad
+
+def test_year_accepted_forms():
+    for ok in ["1900", "2027", " 2027 "]:
+        raw = good()
+        raw.settings[0][1] = ok
+        raw.holidays = []
+        raw.lastyear = []
+        raw.leave = []
+        assert YEAR_MSG not in validate(raw), ok
+
+def test_holiday_date_before_1900():
+    for bad in ["0027-01-01", "1899-12-31"]:
+        raw = good()
+        raw.holidays[0][1] = bad
+        check(raw, "Holidays row 1: invalid date")
+
+def test_leave_from_before_1900():
+    raw = good()
+    raw.leave[0][1] = "1899-12-31"
+    check(raw, "Leave row 1: invalid date")
+
+def test_exact_missing_key():
+    raw = good()
+    raw.settings = [row for row in raw.settings if row[0] != "Rule 4"]
+    assert validate(raw) == ["Settings: missing key Rule 4"]
+
+def test_exact_staff_name_blank():
+    raw = good()
+    raw.staff[2][0] = ""
+    assert validate(raw) == ["Staff row 3: name is blank"]
+
+def test_exact_bad_year_skips_outside_year_check():
+    raw = good()
+    raw.settings[0][1] = "20x7"
+    raw.holidays[0][1] = "2026-12-31"
+    assert validate(raw) == [YEAR_MSG]

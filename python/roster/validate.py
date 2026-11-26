@@ -7,14 +7,15 @@ COUNT_KEYS = ["Count Day", "Count Evening", "Count Night",
 CANNOT_WORDS = ["DAY", "EVENING", "NIGHT"]
 SHIFT_WORDS = ["ALL", "DAY", "EVENING", "NIGHT"]
 
-def is_whole_number(text):
+def is_valid_year(text):
+    """Exactly 4 digits (after trimming spaces), value 1900 to 9999."""
     t = text.strip(' ')
-    if len(t) == 0:
+    if len(t) != 4:
         return False
     for ch in t:
         if DIGITS.find(ch) < 0:
             return False
-    return True
+    return int(t) >= 1900
 
 def is_plain_ascii(text):
     for ch in text:
@@ -34,7 +35,7 @@ def is_valid_date(text):
         elif DIGITS.find(t[i]) < 0:
             return False
     y, m, d = int(t[0:4]), int(t[5:7]), int(t[8:10])
-    if y < 1:
+    if y < 1900:
         return False
     try:
         datetime.date(y, m, d)
@@ -66,7 +67,7 @@ def validate(raw):
         if value is None:
             msgs.append("Settings: missing key " + key)
         elif key == "Year":
-            if is_whole_number(value):
+            if is_valid_year(value):
                 year_ok = True
                 year = int(value.strip(' '))
             else:
