@@ -66,6 +66,15 @@ function Read-CsvRows([string]$path) {
     return @{ Width = $width; Rows = $rows }
 }
 
+# Sets a COM property through IDispatch directly. PowerShell's own COM binder remembers the
+# type of the first value assigned to a property name (for example text) and then refuses
+# other types (numbers, arrays) with a cast error; this call avoids that binder.
+function Set-ComProp($obj, [string]$name, $value) {
+    $comArgs = New-Object 'object[]' 1
+    $comArgs[0] = $value
+    [void]$obj.GetType().InvokeMember($name, [System.Reflection.BindingFlags]::SetProperty, $null, $obj, $comArgs)
+}
+
 # Writes a 2-D block cell by cell, top-left at ($row1, $col1). Empty entries are skipped.
 # (Assigning the whole array to Range.Value2 fails on some PowerShell/Excel combinations.)
 function Write-Block($ws, [int]$row1, [int]$col1, $data, [int]$rows, [int]$cols) {
@@ -73,7 +82,8 @@ function Write-Block($ws, [int]$row1, [int]$col1, $data, [int]$rows, [int]$cols)
         for ($c = 0; $c -lt $cols; $c++) {
             $v = $data[$r, $c]
             if ($null -ne $v) {
-                $ws.Cells.Item($row1 + $r, $col1 + $c).Value2 = $v
+                $cell = $ws.Cells.Item($row1 + $r, $col1 + $c)
+                Set-ComProp $cell 'Value2' $v
             }
         }
     }
@@ -282,8 +292,8 @@ try {
 
     # ------------------------------------------------------------ step 9 (hide)
     $sheetObjs['Settings'].Activate()
-    $sheetObjs['Approvals'].Visible = 0
-    $sheetObjs['Test'].Visible = 0
+    Set-ComProp $sheetObjs['Approvals'] 'Visible' ([int]0)
+    Set-ComProp $sheetObjs['Test'] 'Visible' ([int]0)
 
     # ------------------------------------------------------------ step 10
     if (-not (Test-Path -Path $distDir)) {
