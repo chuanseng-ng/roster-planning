@@ -1,16 +1,12 @@
 Staff name,Active slots,Eligible dates,Ratio,Standby slots
 Tan Wei,1,2,0.5000,0
 Lim Hui,1,2,0.5000,0
-Ng Mei,1,2,0.5000,0
+Ng Mei,1,2,0.5000,1
 Lee Jun,1,2,0.5000,0
-Chan Yi,1,2,0.5000,0
+Chan Yi,1,2,0.5000,1
 Wong Kai,1,2,0.5000,0
-Goh Lin,1,2,0.5000,0
-Ong Bo,1,2,0.5000,0
-Koh Ann,0,2,0.0000,1
-Teo Ray,0,2,0.0000,1
-Yeo Sam,0,2,0.0000,1
-Chua Eve,1,2,0.5000,0
-Ho Ken,0,2,0.0000,1
-Sim Lea,1,2,0.5000,0
-Spread,,,0.5000,
+Goh Lin,1,2,0.5000,1
+Ong Bo,1,2,0.5000,1
+Koh Ann,1,2,0.5000,0
+Teo Ray,1,2,0.5000,0
+Spread,,,0.0000,

@@ -3,6 +3,8 @@ import os
 
 from roster import gen_fixtures
 from roster.model import GAP, GAP_SENIOR, GAP_COAG, EMPTY_CELL, NIGHT, SBY_N, from_serial, to_serial
+from roster.engine import new_result, solve_year
+from roster.inputs import build_inputs
 from roster.review import build_review, check_rules, build_summary
 
 FIXTURES = gen_fixtures.FIXTURES
@@ -37,9 +39,19 @@ def has_gap(res):
     return False
 
 
-def spread_hundredths(inp, res):
+def spread_ten_thousandths(inp, res):
     _, spread = build_summary(inp, res)
     return int(spread.replace(".", ""))
+
+
+def grid_without_rule7(name):
+    """Solve the scenario inputs again with rule 7 switched off in memory; returns the grid."""
+    raw = gen_fixtures.read_scenario(os.path.join(FIXTURES, name))
+    inp = build_inputs(raw)
+    inp.settings.rules[7] = False
+    res = new_result(inp)
+    solve_year(inp, res, 0)
+    return res.grid
 
 
 def read_csv(path):
@@ -54,7 +66,7 @@ def test_normal_year():
     assert not has_gap(res)
     assert build_review(inp, res) == []
     assert check_rules(inp, res, approvals) == []
-    assert spread_hundredths(inp, res) <= 5000
+    assert spread_ten_thousandths(inp, res) <= 5000
 
 
 def test_senior_exempt():
@@ -98,7 +110,8 @@ def test_leave_cannot():
             lv = inp.leave[s][d]
             assert lv & 8 == 0 and lv & inp.slots[k].mask == 0
             assert inp.cannot[s] & inp.slots[k].mask == 0
-    # each leave row actually bites: the named person is absent from the blocked cells
+    # for every leave row, the named person is absent from each cell the row blocks
+    # (a check on the result; it does not prove the engine would have placed them there)
     for row in raw.leave:
         s = staff_index(inp, row[0])
         for d in range(len(inp.dates)):
@@ -139,6 +152,7 @@ def test_cny():
             for j in range(len(inp.slots)):
                 if inp.slots[j].kind not in (NIGHT, SBY_N):
                     assert res.grid[1][j] != s
+    assert grid_without_rule7("cny") != res.grid
 
 
 def test_rest_after_night():
@@ -153,6 +167,7 @@ def test_rest_after_night():
                 for j in range(len(inp.slots)):
                     if inp.slots[j].kind not in (NIGHT, SBY_N):
                         assert res.grid[d + 1][j] != s
+    assert grid_without_rule7("rest_after_night") != res.grid
 
 
 def test_custom_counts():
