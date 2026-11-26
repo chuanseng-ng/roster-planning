@@ -14,10 +14,26 @@ DECL_RE = re.compile(
     r"(?!(?:Sub|Function|Const|Property|Enum|Type|Declare|Event)\b)(.*)$", re.I)
 CONST_RE = re.compile(r"^(?:(?:Private|Public|Global)\s+)?Const\s+(.*)$", re.I)
 PROC_RE = re.compile(
-    r"^(?:(?:Public|Private|Friend)\s+)?(?:Static\s+)?(Sub|Function)\s+\w+\s*\((.*)\)", re.I)
+    r"^(?:(?:Public|Private|Friend)\s+)?(?:Static\s+)?(Sub|Function)\s+\w+\s*\(", re.I)
 AS_RE = re.compile(r"\sAs\s", re.I)
 PARAM_OK_RE = re.compile(r"^(?:ByVal|ByRef|Optional\s+ByVal|Optional\s+ByRef)\s", re.I)
 MODIFIER_RE = re.compile(r"^(?:Optional\s+|ByVal\s+|ByRef\s+)*", re.I)
+
+
+def proc_params(line):
+    """Return the parameter text of a Sub/Function header (bracket-matched), else None."""
+    m = PROC_RE.match(line)
+    if not m:
+        return None
+    depth = 1
+    for i in range(m.end(), len(line)):
+        if line[i] == "(":
+            depth += 1
+        elif line[i] == ")":
+            depth -= 1
+            if depth == 0:
+                return line[m.end():i]
+    return None
 
 
 def strip_line(line):
@@ -169,9 +185,9 @@ def check_text(name, data):
 
     # 8. parameter modifiers
     for no, line in logical:
-        m = PROC_RE.match(line)
-        if m:
-            params = m.group(2).strip()
+        params = proc_params(line)
+        if params is not None:
+            params = params.strip()
             if params:
                 for p in split_top(params):
                     if not PARAM_OK_RE.match(p + " "):
@@ -205,9 +221,9 @@ def check_text(name, data):
         if m:
             names = [first_identifier(p) for p in split_top(m.group(1))]
         else:
-            m = PROC_RE.match(line)
-            if m and m.group(2).strip():
-                names = [first_identifier(p) for p in split_top(m.group(2))]
+            params = proc_params(line)
+            if params is not None and params.strip():
+                names = [first_identifier(p) for p in split_top(params)]
         for n in names:
             if n.lower() in RESERVED:
                 add(no, "reserved name used as identifier")

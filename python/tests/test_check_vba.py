@@ -48,6 +48,18 @@ def test_multi_declaration_all_typed_is_ok():
                                            "Private arr(1, 2) As Long"))
     assert msgs == []
 
+def test_array_return_types_and_array_params_are_ok():
+    for line in ("Private Function H() As Long()",
+                 "Private Function K(ByVal a As Long) As String()",
+                 "Public Sub S(ByRef b() As String, ByVal n As Long)"):
+        end = "End Sub" if "Sub" in line else "End Function"
+        assert check_vba.check_text("modX", src(line, end)) == [], line
+
+def test_parameter_without_byval_with_array_return_type():
+    msgs = check_vba.check_text("modX", src("Private Function M(a As Long) As Long()",
+                                           "End Function"))
+    assert msgs == ["modX:3: parameter needs ByVal or ByRef"]
+
 def test_parameter_without_byval():
     msgs = check_vba.check_text("modX", src("Public Sub A(n As Long)", "End Sub"))
     assert msgs == ["modX:3: parameter needs ByVal or ByRef"]
