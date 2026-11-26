@@ -122,7 +122,7 @@ Private Sub LoadRaw(ByVal first As Long, ByVal last As Long, ByVal tableName As 
             If RowNoOf(r) >= 1 Then
                 n = n + 1
                 For c = 1 To width
-                    tbl(n, c) = CellText(r, 3 + c)
+                    tbl(n, c) = Trim$(CellText(r, 3 + c))
                 Next c
             End If
         End If
@@ -375,7 +375,7 @@ Private Function ApplyApproveRows(ByVal first As Long, ByVal last As Long) As St
                 End If
                 kIdx = -1
                 For j = 0 To gSlotCount - 1
-                    If StrComp(gSlotName(j), slotTxt, vbBinaryCompare) = 0 Then kIdx = j
+                    If StrComp(modTypes.Norm(gSlotName(j)), modTypes.Norm(slotTxt), vbBinaryCompare) = 0 Then kIdx = j
                 Next j
                 If kIdx < 0 Then
                     ApplyApproveRows = label & ": unknown slot"
@@ -453,6 +453,16 @@ Private Function RunScenario(ByVal first As Long, ByVal last As Long) As String
     RunScenario = ""
 End Function
 
+' Runs one scenario; a runtime error becomes that scenario's failure text so
+' the scenarios after it still run.
+Private Function RunScenarioSafe(ByVal first As Long, ByVal last As Long) As String
+    On Error GoTo Fail
+    RunScenarioSafe = RunScenario(first, last)
+    Exit Function
+Fail:
+    RunScenarioSafe = "runtime error " & CStr(Err.Number) & " " & Err.Description
+End Function
+
 ' ------------------------------------------------------------------
 ' Entry points
 ' ------------------------------------------------------------------
@@ -489,7 +499,7 @@ Public Function SelfTestSilent() As String
             Loop
             mCurrent = nm
             n = n + 1
-            diff = RunScenario(r, last)
+            diff = RunScenarioSafe(r, last)
             If Len(diff) > 0 Then AddFail "FAIL " & nm & ": " & diff
             r = last + 1
         End If
