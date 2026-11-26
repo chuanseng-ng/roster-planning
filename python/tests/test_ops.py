@@ -109,7 +109,23 @@ def test_approve_exempt_senior_into_gap_senior():
                            before[0][5], before[0][6]]
     assert res.approved[0][4] is True
     assert res.active_count[0] == 1
+    # Later dates are solved again after the approval; S1 is exempt there, so the senior gap stays.
     assert names(inp, res, 1)[4] == "GAP:S" and names(inp, res, 2)[4] == "GAP:S"
+    assert check_rules(inp, res, approvals) == []
+
+
+def test_approve_on_last_date_index():
+    inp = make_inputs(STAFF_B, D3, exempt=[("S1", 0), ("S1", 1), ("S1", 2)])
+    res = solved(inp)
+    last = len(inp.dates) - 1
+    assert names(inp, res, last)[4] == "GAP:S"
+    before = [list(r) for r in res.grid]
+    approvals = []
+    ok, msg = apply_approval(inp, res, approvals, last, 4, 0)
+    assert (ok, msg) == (True, "")
+    assert [(a.d, a.k, a.s, a.rules) for a in approvals] == [(last, 4, 0, [4])]
+    assert res.grid[last][4] == 0 and res.approved[last][4] is True
+    assert res.grid[:last] == before[:last]
     assert check_rules(inp, res, approvals) == []
 
 

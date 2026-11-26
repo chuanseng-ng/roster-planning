@@ -97,6 +97,8 @@ def validate(raw):
                 staff_names.append(norm(name))
             if not is_plain_ascii(name):
                 msgs.append("Staff row " + str(r) + ": name must use plain ASCII characters")
+            if norm(name) == "GAP":
+                msgs.append("Staff row " + str(r) + ": name cannot be GAP")
         if norm(row[2]) != "Y" and norm(row[2]) != "N":
             msgs.append("Staff row " + str(r) + ": Senior must be Y or N")
         for piece in row[4].split(","):

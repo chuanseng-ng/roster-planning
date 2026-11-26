@@ -93,6 +93,7 @@ Private Sub GapRow(ByRef tmp() As String, ByVal n As Long, ByVal d As Long, ByVa
             If Len(rules) = 0 Then
                 AppendPart reasons, gStaff(s) & ": not placed"
             Else
+                ' Left$(rules, 1) and Len(rules) = 1 below rely on rule numbers being single digits.
                 first = CLng(Left$(rules, 1))
                 AppendPart reasons, gStaff(s) & ": " & WhyText(first, k)
             End If

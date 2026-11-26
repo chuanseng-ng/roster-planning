@@ -54,6 +54,11 @@ def test_staff_ascii():
     raw.staff[1][0] = "Zoë"
     check(raw, "Staff row 2: name must use plain ASCII characters")
 
+def test_staff_name_gap():
+    raw = good()
+    raw.staff[1][0] = " gap "
+    check(raw, "Staff row 2: name cannot be GAP")
+
 def test_staff_senior():
     raw = good()
     raw.staff[1][2] = "Q"

@@ -103,11 +103,12 @@ Options tried at each step, in order:
   senior in candidate order, for each empty active slot of the group in column order that the
   person is eligible for: place them. Last option, "unmet": the last empty active slot of the
   group becomes a reserved GAP.
-- Special coag step: skipped if a special coag person is already in an active slot of the group.
+- Special coag step: skipped if a special coag person is already in an active slot of the group,
+  or an approved special coag person already sits in one of the group's standby slots.
   Otherwise: (a) each special coag person × each empty, unreserved active slot of the group;
-  (b) "fallback": each special coag person eligible for the group's first standby slot, placed
-  there; (c) "unmet": the group's first standby slot becomes a reserved GAP, or, if the group has
-  no standby slots, its last empty active slot.
+  (b) "fallback": each special coag person eligible for the group's first empty standby slot,
+  placed there; (c) "unmet": the group's first empty standby slot becomes a reserved GAP, or, if
+  the group has no empty standby slot, its last empty active slot.
 - Slot step: each eligible person in candidate order; last option: plain GAP.
 
 Eligibility of a person for a slot applies rules 3 to 7, subject to the switches.

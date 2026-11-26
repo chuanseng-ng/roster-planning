@@ -56,7 +56,7 @@ def test_review_plain_shortage():
     assert "A1: already rostered; N01: already rostered" in rows[0].reason
     assert "N04 (rule 6 cannot do)" in rows[0].candidates
     assert "N03" not in rows[0].candidates and "A1" not in rows[0].candidates
-    assert rows[1].slot == "Night" or rows[1].slot == "Standby N"
+    assert rows[1].slot == "Standby N"
     assert "cannot do Standby N" in rows[1].reason
 
 

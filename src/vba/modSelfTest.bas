@@ -405,11 +405,11 @@ Private Function RunScenario(ByVal first As Long, ByVal last As Long) As String
     Dim diff As String
     Dim chk As String
 
-    LoadRaw first, last, "staff", 5, modTypes.gRawStaff, modTypes.gRawStaffRows
-    LoadRaw first, last, "holidays", 3, modTypes.gRawHolidays, modTypes.gRawHolidaysRows
-    LoadRaw first, last, "lastyear", 4, modTypes.gRawLastYear, modTypes.gRawLastYearRows
-    LoadRaw first, last, "leave", 4, modTypes.gRawLeave, modTypes.gRawLeaveRows
-    LoadRaw first, last, "settings", 2, modTypes.gRawSettings, modTypes.gRawSettingsRows
+    LoadRaw first, last, "staff", 5, gRawStaff, gRawStaffRows
+    LoadRaw first, last, "holidays", 3, gRawHolidays, gRawHolidaysRows
+    LoadRaw first, last, "lastyear", 4, gRawLastYear, gRawLastYearRows
+    LoadRaw first, last, "leave", 4, gRawLeave, gRawLeaveRows
+    LoadRaw first, last, "settings", 2, gRawSettings, gRawSettingsRows
 
     msgs = modValidate.ValidateRaw()
     If Len(msgs) > 0 Then

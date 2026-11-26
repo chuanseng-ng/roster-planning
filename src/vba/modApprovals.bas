@@ -232,8 +232,6 @@ Public Sub DoApplyApprovals()
     Dim msg As String
     Dim ws As Worksheet
     Dim lastRow As Long
-    Dim c As Long
-    Dim lr As Long
     Dim r As Long
     Dim n As Long
     Dim cap As Long
@@ -275,11 +273,7 @@ Public Sub DoApplyApprovals()
     End If
 
     Set ws = ThisWorkbook.Worksheets("Review")
-    lastRow = 1
-    For c = 1 To 7
-        lr = ws.Cells(ws.Rows.Count, c).End(xlUp).Row
-        If lr > lastRow Then lastRow = lr
-    Next c
+    lastRow = modIO.LastRowOf(ws, 7)
     cap = lastRow
     ReDim itD(1 To cap)
     ReDim itK(1 To cap)

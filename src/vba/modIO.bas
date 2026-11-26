@@ -29,17 +29,16 @@ Private Function CellToText(ByVal v As Variant, ByVal isDateCol As Boolean) As S
 End Function
 
 ' Last used row among the first `width` columns of ws (1 when the sheet is empty).
-Private Function LastRowOf(ByVal ws As Worksheet, ByVal width As Long) As Long
-    Dim c As Long
-    Dim lr As Long
-    Dim best As Long
+' Uses Find, which also sees rows hidden by a filter.
+Public Function LastRowOf(ByVal ws As Worksheet, ByVal width As Long) As Long
+    Dim f As Range
 
-    best = 1
-    For c = 1 To width
-        lr = ws.Cells(ws.Rows.Count, c).End(xlUp).Row
-        If lr > best Then best = lr
-    Next c
-    LastRowOf = best
+    Set f = ws.Range(ws.Cells(1, 1), ws.Cells(ws.Rows.Count, width)).Find("*", , xlFormulas, xlPart, xlByRows, xlPrevious)
+    If f Is Nothing Then
+        LastRowOf = 1
+    Else
+        LastRowOf = f.Row
+    End If
 End Function
 
 ' Reads rows 2 and below of a sheet into tbl(1 To rowCount, 1 To width).

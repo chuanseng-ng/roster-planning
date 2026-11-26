@@ -708,6 +708,7 @@ Public Sub SolveDate(ByVal d As Long)
 
     Rec 0
 
+    ' The no-leaf case (mHaveBest False) is unreachable: NODE_CAP exceeds the maximum number of steps per date.
     If mHaveBest Then
         For k = 0 To nk - 1
             gGrid(d, k) = mBest(k)

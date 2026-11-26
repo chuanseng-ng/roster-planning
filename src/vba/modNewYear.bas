@@ -19,13 +19,17 @@ End Sub
 Private Function YearRow() As Long
     Dim ws As Worksheet
     Dim r As Long
+    Dim v As Variant
 
     YearRow = 0
     Set ws = ThisWorkbook.Worksheets("Settings")
     For r = 2 To 13
-        If StrComp(Norm(CStr(ws.Cells(r, 1).Value)), "YEAR", vbBinaryCompare) = 0 Then
-            YearRow = r
-            Exit Function
+        v = ws.Cells(r, 1).Value2
+        If Not IsError(v) Then
+            If StrComp(Norm(CStr(v)), "YEAR", vbBinaryCompare) = 0 Then
+                YearRow = r
+                Exit Function
+            End If
         End If
     Next r
 End Function

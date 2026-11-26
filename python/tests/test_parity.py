@@ -11,7 +11,6 @@ REPO = pathlib.Path(__file__).resolve().parents[2]
 VBA_DIR = REPO / "src" / "vba"
 BUILD_PS1 = REPO / "build" / "build.ps1"
 DESIGN = REPO / "docs" / "superpowers" / "specs" / "2026-11-26-ph-roster-planner-design.md"
-TASK3_BRIEF = REPO / ".superpowers" / "sdd" / "task-3-brief.md"
 
 spec = importlib.util.spec_from_file_location("check_vba", REPO / "tools" / "check_vba.py")
 check_vba = importlib.util.module_from_spec(spec)
@@ -99,25 +98,43 @@ def test_user_string_in_double_quotes(s):
 
 
 # ---------------------------------------------------------------- validation messages
+VALIDATION_MESSAGES = [
+    "Settings: missing key <key>",
+    "Settings: Year must be a whole number",
+    "Settings: <key> must be a whole number from 0 to 9",
+    "Settings: <key> must be Y or N",
+    "Staff row <r>: name is blank",
+    "Staff row <r>: duplicate name <name>",
+    "Staff row <r>: name must use plain ASCII characters",
+    "Staff row <r>: name cannot be GAP",
+    "Staff row <r>: Senior must be Y or N",
+    "Staff row <r>: unknown Cannot do value <word>",
+    "Holidays row <r>: holiday name is blank",
+    "Holidays row <r>: holiday name must use plain ASCII characters",
+    "Holidays row <r>: invalid date",
+    "Holidays row <r>: date is outside year <year>",
+    "Holidays row <r>: duplicate date <yyyy-mm-dd>",
+    "LastYear row <r>: unknown staff name <name>",
+    "LastYear row <r>: holiday name <name> is not on the Holidays sheet",
+    "LastYear row <r>: Slot is blank",
+    "Leave row <r>: unknown staff name <name>",
+    "Leave row <r>: invalid date",
+    "Leave row <r>: From date is after To date",
+    "Leave row <r>: unknown Shift <word>",
+]
+
+
 def task3_message_formats():
-    """The backticked message formats from the Task 3 brief's validation list."""
-    text = TASK3_BRIEF.read_text(encoding="utf-8")
-    start = text.index("Validation messages")
-    end = text.index("A date is valid when")
-    formats = []
-    for line in text[start:end].splitlines():
-        m = re.match(r"^- `(.+)`", line)
-        if m:
-            formats.append(m.group(1))
-    return formats
+    """The validation message formats (<...> marks a variable part)."""
+    return list(VALIDATION_MESSAGES)
 
 
 def fixed_fragments(fmt):
     return [f for f in re.split(r"<[^>]*>", fmt) if f]
 
 
-def test_task3_brief_lists_21_messages():
-    assert len(task3_message_formats()) == 21
+def test_validation_message_list_has_22_entries():
+    assert len(task3_message_formats()) == 22
 
 
 def test_validation_fragments_in_modvalidate():

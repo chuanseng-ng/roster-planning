@@ -164,6 +164,9 @@ Public Function ValidateRaw() As String
             If Not IsPlainAscii(nm) Then
                 AddMsg msgs, "Staff row " & CStr(r) & ": name must use plain ASCII characters"
             End If
+            If StrComp(Norm(nm), "GAP", vbBinaryCompare) = 0 Then
+                AddMsg msgs, "Staff row " & CStr(r) & ": name cannot be GAP"
+            End If
         End If
         If StrComp(Norm(gRawStaff(r, 3)), "Y", vbBinaryCompare) <> 0 And StrComp(Norm(gRawStaff(r, 3)), "N", vbBinaryCompare) <> 0 Then
             AddMsg msgs, "Staff row " & CStr(r) & ": Senior must be Y or N"

@@ -109,12 +109,16 @@ function Load-Table($ws, [string]$csvPath, [int]$width, [int[]]$dateCols) {
 
 function Add-Button($ws, [string]$cell, [double]$width, [double]$height, [string]$caption, [string]$macro) {
     $anchor = $ws.Range($cell)
-    $btn = $ws.Buttons().Add($anchor.Left, $anchor.Top, $width, $height)
-    $btn.Caption = $caption
-    $btn.OnAction = $macro
-    $btn.Placement = 3
-    [void][Runtime.InteropServices.Marshal]::ReleaseComObject($anchor)
-    [void][Runtime.InteropServices.Marshal]::ReleaseComObject($btn)
+    $shp = $ws.Shapes.AddFormControl(0, $anchor.Left, $anchor.Top, $width, $height)
+    $shp.OnAction = $macro
+    $shp.Placement = 3
+    $tf = $shp.TextFrame
+    $ch = $tf.Characters()
+    $ch.Text = $caption
+    Release-Com $ch
+    Release-Com $tf
+    Release-Com $shp
+    Release-Com $anchor
 }
 
 function Release-Com($obj) {
@@ -235,11 +239,17 @@ try {
         if (($name -eq 'Approvals') -or ($name -eq 'Test')) { continue }
         $ws = $sheetObjs[$name]
         $ws.Activate()
-        $win = $xl.ActiveWindow
-        $win.FreezePanes = $false
-        $win.SplitColumn = 0
-        $win.SplitRow = 1
-        $win.FreezePanes = $true
+        $win = $null
+        try {
+            $win = $xl.ActiveWindow
+            $win.FreezePanes = $false
+            $win.SplitColumn = 0
+            $win.SplitRow = 1
+            $win.FreezePanes = $true
+        }
+        catch {
+            Write-Host ('Note: could not freeze the header row on sheet ' + $name + ': ' + $_.Exception.Message)
+        }
         Release-Com $win
         $used = $ws.UsedRange
         $cols = $used.Columns
@@ -273,6 +283,7 @@ try {
 
     # ------------------------------------------------------------ step 11
     $result = $null
+    $xl.Visible = $true
     try {
         $result = $xl.Run('modSelfTest.SelfTestSilent')
     }
@@ -284,7 +295,7 @@ try {
     if ($exitCode -eq 0) {
         $text = [string]$result
         Write-Host $text
-        if ($text.StartsWith('PASS')) { $exitCode = 0 } else { $exitCode = 2 }
+        if ($text.StartsWith('PASS', [StringComparison]::Ordinal)) { $exitCode = 0 } else { $exitCode = 2 }
     }
 }
 catch {

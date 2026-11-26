@@ -13,12 +13,12 @@ Public Sub ShowMessages(ByVal title As String, ByVal text As String)
     Dim i As Long
     Dim n As Long
 
+    Set ws = ThisWorkbook.Worksheets("Review")
+    ws.Range(ws.Cells(1, 9), ws.Cells(ws.Rows.Count, 9)).ClearContents
     If Len(text) <= 900 Then
         MsgBox text, vbInformation, title
         Exit Sub
     End If
-    Set ws = ThisWorkbook.Worksheets("Review")
-    ws.Range(ws.Cells(1, 9), ws.Cells(ws.Rows.Count, 9)).ClearContents
     lines = Split(text, vbLf)
     n = UBound(lines) + 1
     ws.Range(ws.Cells(1, 9), ws.Cells(1 + n, 9)).NumberFormat = "@"
@@ -33,16 +33,10 @@ End Sub
 ' True when any of the first `width` columns has an entry below the header.
 Private Function SheetHasData(ByVal sheetName As String, ByVal width As Long) As Boolean
     Dim ws As Worksheet
-    Dim c As Long
 
     SheetHasData = False
     Set ws = ThisWorkbook.Worksheets(sheetName)
-    For c = 1 To width
-        If ws.Cells(ws.Rows.Count, c).End(xlUp).Row >= 2 Then
-            SheetHasData = True
-            Exit Function
-        End If
-    Next c
+    If modIO.LastRowOf(ws, width) >= 2 Then SheetHasData = True
 End Function
 
 Private Sub DoGenerate()
