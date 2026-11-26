@@ -66,6 +66,19 @@ function Read-CsvRows([string]$path) {
     return @{ Width = $width; Rows = $rows }
 }
 
+# Writes a 2-D block cell by cell, top-left at ($row1, $col1). Empty entries are skipped.
+# (Assigning the whole array to Range.Value2 fails on some PowerShell/Excel combinations.)
+function Write-Block($ws, [int]$row1, [int]$col1, $data, [int]$rows, [int]$cols) {
+    for ($r = 0; $r -lt $rows; $r++) {
+        for ($c = 0; $c -lt $cols; $c++) {
+            $v = $data[$r, $c]
+            if ($null -ne $v) {
+                $ws.Cells.Item($row1 + $r, $col1 + $c).Value2 = $v
+            }
+        }
+    }
+}
+
 function Col-Letter([int]$n) {
     return [string][char](64 + $n)
 }
@@ -104,7 +117,7 @@ function Load-Table($ws, [string]$csvPath, [int]$width, [int[]]$dateCols) {
         }
     }
     $addr = 'A2:' + (Col-Letter $width) + [string]($count + 1)
-    $ws.Range($addr).Value2 = $data
+    Write-Block $ws 2 1 $data $count $width
 }
 
 function Add-Button($ws, [string]$cell, [double]$width, [double]$height, [string]$caption, [string]$macro) {
@@ -189,7 +202,7 @@ try {
         $setData[$r, 0] = $src[0]
         $setData[$r, 1] = $src[1]
     }
-    $ws.Range('A2:B13').Value2 = $setData
+    Write-Block $ws 2 1 $setData $nSet 2
 
     # ------------------------------------------------------------ step 5
     Load-Table $sheetObjs['Staff']    (Join-Path $fixDir 'staff.csv')    5 @()
@@ -214,7 +227,8 @@ try {
             }
         }
         $tAddr = 'A1:' + (Col-Letter $tWidth) + [string]$tRows
-        $ws.Range($tAddr).Value2 = $tData
+        Write-Host 'Loading the Test sheet (this can take a minute)...'
+        Write-Block $ws 1 1 $tData $tRows $tWidth
     }
 
     # ------------------------------------------------------------ step 7
