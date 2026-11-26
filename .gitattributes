@@ -1,0 +1,3 @@
+src/vba/*.bas text eol=crlf
+build/*.ps1 text eol=crlf
+*.csv text eol=lf
