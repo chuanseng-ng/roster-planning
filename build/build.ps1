@@ -292,6 +292,36 @@ try {
 
     # ------------------------------------------------------------ step 9 (hide)
     $sheetObjs['Settings'].Activate()
+    # A note on cell A1 of every sheet explains what the sheet is for. The macros only
+    # clear notes from row 2 down, so these stay. Cosmetic: a failure here is reported
+    # and the build continues.
+    $nl = [string][char]10
+    $sheetNotes = @{}
+    $sheetNotes['Settings'] = 'SETTINGS (input)' + $nl + 'The roster year, how many slots of each kind' + $nl + 'each date needs, and which rules are on (Y/N).' + $nl + 'Buttons: Generate roster, Start new year,' + $nl + 'Run self-test.'
+    $sheetNotes['Staff'] = 'STAFF (input)' + $nl + 'One row per person.' + $nl + 'Senior: Y or N.' + $nl + 'Role: comma-separated list; include' + $nl + 'Special Coag for special coag staff.' + $nl + 'Cannot do: shifts the person never works' + $nl + '(Day, Evening, Night; comma-separated).'
+    $sheetNotes['Holidays'] = 'HOLIDAYS (input)' + $nl + 'One row per public-holiday date in the' + $nl + 'Settings year. Expand long weekends adds the' + $nl + 'neighbouring Saturday, Sunday or Monday;' + $nl + 'added rows are marked Y and can be edited' + $nl + 'or deleted.'
+    $sheetNotes['LastYear'] = 'LASTYEAR (input)' + $nl + 'Who was rostered on each holiday last year.' + $nl + 'Anyone in an active slot (Day, Evening, Night)' + $nl + 'is exempt from active slots on the same' + $nl + 'holiday this year; standby does not count.' + $nl + 'Start new year fills this from the Roster.'
+    $sheetNotes['Leave'] = 'LEAVE (input)' + $nl + 'One row per leave period (From date to' + $nl + 'To date). Shift All blocks the whole date;' + $nl + 'Day, Evening or Night blocks that shift' + $nl + 'and its standby.'
+    $sheetNotes['Roster'] = 'ROSTER (output)' + $nl + 'One row per date with the person in each slot.' + $nl + 'GAP (pink): could not be filled without' + $nl + 'breaking a rule; see the Review sheet.' + $nl + 'Yellow: an exception you approved.' + $nl + 'Generate roster overwrites this sheet.'
+    $sheetNotes['Review'] = 'REVIEW (output)' + $nl + 'One row per GAP: the rule not met, why,' + $nl + 'and who could be approved. Type a staff name' + $nl + 'in Approve and click Apply approvals.' + $nl + 'Long message lists appear from column I.'
+    $sheetNotes['Summary'] = 'SUMMARY (output)' + $nl + 'Per person: active slots, eligible dates,' + $nl + 'ratio (active / eligible) and standby slots.' + $nl + 'Spread = highest ratio minus lowest.'
+    $sheetNotes['Approvals'] = 'APPROVALS (hidden, kept by the macros)' + $nl + 'The exceptions you approved and the rules' + $nl + 'each one breaks. Do not edit.'
+    $sheetNotes['Test'] = 'TEST (hidden)' + $nl + 'Scenarios and expected results used by' + $nl + 'Run self-test. Do not edit.'
+    foreach ($name in $sheetNames) {
+        if ($sheetNotes.ContainsKey($name)) {
+            try {
+                $noteCell = $sheetObjs[$name].Range('A1')
+                $note = $noteCell.AddComment([string]$sheetNotes[$name])
+                $note.Shape.TextFrame.AutoSize = $true
+                Release-Com $note
+                Release-Com $noteCell
+            }
+            catch {
+                Write-Host ('Note: could not add the A1 note on ' + $name + ': ' + $_.Exception.Message)
+            }
+        }
+    }
+
     Set-ComProp $sheetObjs['Approvals'] 'Visible' ([int]0)
     Set-ComProp $sheetObjs['Test'] 'Visible' ([int]0)
 

@@ -35,7 +35,7 @@ If the script seems stuck, look for an Excel or VBA dialog.
 2. The workbook comes with fictional sample data. Replace it with your own on the Staff, Holidays, LastYear and Leave sheets, and check the Settings sheet (year, number of slots, rule switches). Keep the header in row 1 of every sheet.
 3. On the Holidays sheet click "Expand long weekends" to add the neighbouring Saturday, Sunday or Monday around holidays that fall on a Friday, Saturday, Sunday or Monday (a Saturday or Sunday holiday adds the following Monday).
 4. On the Settings sheet click "Generate roster". Problems in the input are shown in a message box, or listed on the Review sheet from cell I1 when there are many. Row numbers in these messages count data rows: row 1 is the first row under the header, and blank rows are not counted.
-5. Open the Roster sheet. Slots that could not be filled show GAP. Work through the Review sheet: each row says which rule was not met and who could be considered. Type a staff name in the Approve column for each row you want to fill.
+5. Open the Roster sheet. Slots that could not be filled show GAP. Work through the Review sheet: each row says which rule was not met and who could be considered. Type a staff name in the Approve column for each row you want to fill. (Hovering over cell A1 on any sheet shows a short note on what that sheet is for.)
 6. On the Review sheet click "Apply approvals". Each approval asks for confirmation and lists the rules it would break. Later dates are regenerated around your choices. When at least one approval is applied, the Approve column is cleared, so entries that were skipped or declined must be typed again.
 
 The "Run self-test" button on the Settings sheet repeats the built-in check at any time.
